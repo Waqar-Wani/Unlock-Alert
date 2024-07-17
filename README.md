@@ -1,78 +1,113 @@
-```markdown
-# Unlock Alert Flask App
+# Android Unlock Event Notification with Flask-Mail and MacroDroid
 
-This Flask application is designed to send email notifications when your Android device is unlocked. It is integrated with MacroDroid, an Android automation app, to trigger email sending events on device lock/unlock.
+## Overview
 
-## Dependencies
+This project, authored by Er. Waqar Wani (Vickywaqar111@gmail.com), demonstrates how to set up an Android device to send email notifications whenever the device is unlocked. It uses Flask-Mail as the email-sending component on a Flask server and MacroDroid for Android automation to trigger the email notification.
 
-Make sure to install the following Python packages using `pip`:
+## Components
+
+- Flask server with Flask-Mail for email sending.
+- MacroDroid app for Android automation.
+
+## Prerequisites
+
+1. Python installed on your computer.
+2. Flask and Flask-Mail Python packages installed.
+3. MacroDroid app installed on your Android device.
+4. Ngrok or a similar service for exposing your Flask server to the internet.
+
+## Flask Server Setup
+
+### 1. Install Required Python Packages
+
+Open a terminal and install the required Python packages:
 
 ```bash
 pip install Flask Flask-Mail
 ```
 
-The Flask application uses Flask and Flask-Mail for handling web requests and sending emails, respectively.
+### 2. Set Up Flask-Mail Configuration
 
-## Setup
+In your Flask server script (`app.py`), configure Flask-Mail with your Gmail account details:
 
-1. Clone the repository to your local machine:
-
-   ```bash
-   git clone https://github.com/yourusername/unlock-alert-flask.git
-   ```
-
-2. Navigate to the project directory:
-
-   ```bash
-   cd unlock-alert-flask
-   ```
-
-3. Install dependencies:
-
-   ```bash
-   pip install -r requirements.txt
-   ```
-
-4. Update the Flask-Mail configuration in `app.py`:
-
-   - Set your Gmail credentials (`MAIL_USERNAME` and `MAIL_PASSWORD`).
-   - Adjust other configuration parameters if needed.
-
-5. Run the Flask application:
-
-   ```bash
-   python app.py
-   ```
-
-   The Flask server will be running at `http://localhost:5000`.
-
-## MacroDroid Integration
-
-1. Install [MacroDroid](https://play.google.com/store/apps/details?id=com.arlosoft.macrodroid) on your Android device.
-
-2. Create a MacroDroid macro:
-
-   - Trigger: Screen Unlocked (or your preferred trigger).
-   - Action: HTTP Request.
-     - Server URL: The ngrok or public URL of your Flask server.
-     - Method: POST.
-     - Content Type: application/x-www-form-urlencoded.
-
-3. Test the integration:
-
-   - Lock and unlock your Android device.
-   - Check the Flask server logs for handling events.
-
-## Additional Information
-
-- Make sure your Flask server is accessible from the internet (use ngrok or deploy it on a server).
-- Protect sensitive information such as passwords and API keys.
-- Respect user privacy and permissions when accessing device information.
-
----
-
-© Er. Waqar
-
+```python
+# Flask-Mail Configuration
+app.config['MAIL_SERVER'] = 'smtp.gmail.com'
+app.config['MAIL_PORT'] = 465
+app.config['MAIL_USE_TLS'] = False
+app.config['MAIL_USE_SSL'] = True
+app.config['MAIL_USERNAME'] = 'your_email@gmail.com'
+app.config['MAIL_PASSWORD'] = 'your_email_password'
+app.config['MAIL_DEFAULT_SENDER'] = 'your_email@gmail.com'
+app.config['MAIL_SUPPRESS_SEND'] = False
 ```
 
-Feel free to customize it further based on your preferences.
+### 3. Set Up Flask Route for Lock/Unlock Events
+
+Add a route in your Flask script to handle lock/unlock events:
+
+```python
+from flask import Flask, request
+from flask_mail import Mail, Message
+from datetime import datetime
+
+app = Flask(__name__)
+mail = Mail(app)
+
+@app.route('/', methods=['POST'])
+def handle_lock_unlock_event():
+    send_email()
+    return 'Lock/Unlock event handled successfully!'
+
+def send_email():
+    subject = 'Unlock Event Notification'
+    recipient = 'recipient_email@gmail.com'
+    
+    unlock_time = datetime.now().strftime('%d-%m-%Y %H:%M:%S')
+    
+    message_body = f'Hello,\n\nYour Android device was unlocked at {unlock_time}.\n\nThis is a notification from Flask-Mail.'
+    
+    msg = Message(subject=subject, recipients=[recipient], body=message_body)
+    
+    try:
+        mail.send(msg)
+        print('Email sent successfully!')
+    except Exception as e:
+        print(f'Error sending email: {str(e)}')
+
+if __name__ == '__main__':
+    app.run(debug=True, host='0.0.0.0', port=5000)
+```
+
+### 4. Run Flask Server
+
+Run your Flask server:
+
+```bash
+python app.py
+```
+
+## MacroDroid Setup
+
+### 1. Create Macro in MacroDroid
+
+1. Open the MacroDroid app on your Android device.
+2. Tap on the "+" button to create a new macro.
+3. Add a "Screen Unlocked" trigger.
+4. Add an "HTTP Request" action:
+   - Set the Server URL to your ngrok or public Flask server URL.
+   - Set the Method to "POST."
+   - Set the Content Type to "application/x-www-form-urlencoded."
+5. Save the macro.
+
+### 2. Test the Setup
+
+1. Lock and unlock your Android device.
+2. Check the Flask server logs for successful handling of the lock/unlock event.
+3. Check the recipient email for the unlock event notification.
+
+## Conclusion
+
+You have successfully set up an Android device to send email notifications using Flask-Mail and MacroDroid. This project can be expanded or customized based on your specific requirements.
+
+---
